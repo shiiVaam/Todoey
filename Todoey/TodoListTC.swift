@@ -10,12 +10,16 @@ import UIKit
 
 class TodoListTC: UITableViewController {
 
+    let defaults = UserDefaults.standard
   var itemArr = ["find","eggs","be","ready"]
    
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        if let item = defaults.value(forKey: "ToDoList") as? [String]{
+            itemArr = item
+        }
     }
 
     // MARK: - Table view data source
@@ -55,6 +59,8 @@ class TodoListTC: UITableViewController {
             self.itemArr.append(textField.text!)
             self.tableView.reloadData()
            
+            self.defaults.set(self.itemArr, forKey: "ToDoList")
+            
             }))
             alert.addTextField(configurationHandler: { (alertTextField) in
                 alertTextField.placeholder = "Create New Item"
