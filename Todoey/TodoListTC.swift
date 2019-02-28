@@ -12,6 +12,8 @@ class TodoListTC: UITableViewController {
 
 //    let defaults = UserDefaults.standard
     var itemArr = [Item]()
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+
     
     let dataPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
@@ -19,21 +21,23 @@ class TodoListTC: UITableViewController {
         super.viewDidLoad()
 
 
+      
         print(dataPath!)
-        let item = Item()
-        item.title = "bro"
-        itemArr.append(item)
-        
-        
-        let item1 = Item()
-        item1.title = "fffff"
-        itemArr.append(item1)
+
+        //        let item = Item()
+//        item.title = "bro"
+//        itemArr.append(item)
+//
+//
+//        let item1 = Item()
+//        item1.title = "fffff"
+//        itemArr.append(item1)
         
 //        if let items = defaults.array(forKey:"ToDoListArray") as? [Item]{
 //            itemArr = items
 //        }
  
-        loadItems()
+//        loadItems()
     }
 
     // MARK: - Table view data source
@@ -70,27 +74,42 @@ class TodoListTC: UITableViewController {
         var textField = UITextField()
         let alert = UIAlertController.init(title: "Add new Todey Item", message: "", preferredStyle: .alert)
         alert.addAction(UIAlertAction.init(title: "ADD ITEM", style: .default, handler: { (action) in
+           
             
-            let newItem = Item()
+            
+            let newItem = Item(context: self.context)
             newItem.title = textField.text!
-            self.itemArr.append(newItem)
+            newItem.done = false
+          
     
 //            self.defaults.set(self.itemArr, forKey:"ToDoListArray")
+            
+            
+            if  textField.text == "" {
+                let abc = UIAlertController.init(title: "", message: "Empty string", preferredStyle: UIAlertController.Style.alert)
+                abc.addAction(UIAlertAction.init(title: "OK", style: UIAlertAction.Style.default, handler: nil))
+                self.present(abc, animated: true, completion: nil)
+
+            }else{
+                self.itemArr.append(newItem)
+                
+            }
             self.saveItems()
          
             }))
+        
+        
             alert.addTextField(configurationHandler: { (alertTextField) in
                 alertTextField.placeholder = "Create New Item"
-                textField = alertTextField
+              textField = alertTextField
+             
         })
         present(alert, animated: true, completion: nil)
     }
     func saveItems(){
         
-        let encoder = PropertyListEncoder()
         do{
-            let data = try encoder.encode(self.itemArr)
-            try data.write(to: self.dataPath!)
+            try context.save()
             
         }catch{
             
@@ -99,16 +118,16 @@ class TodoListTC: UITableViewController {
         self.tableView.reloadData()
         
     }
-    func loadItems(){
-        if let data = try? Data(contentsOf:dataPath!){
-            let decoder = PropertyListDecoder()
-            do{
-                itemArr = try decoder.decode([Item].self, from: data)
-
-            }catch{
-                
-            }
-        }
-        
+//    func loadItems(){
+//        if let data = try? Data(contentsOf:dataPath!){
+//            let decoder = PropertyListDecoder()
+//            do{
+//                itemArr = try decoder.decode([Item].self, from: data)
+//
+//            }catch{
+//
+//            }
+//        }
+    
     }
-}
+//}
