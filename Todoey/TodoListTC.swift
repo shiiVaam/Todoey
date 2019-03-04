@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class TodoListTC: UITableViewController {
 
@@ -21,7 +22,8 @@ class TodoListTC: UITableViewController {
         super.viewDidLoad()
 
 
-      
+        let request:NSFetchRequest<Item> = Item.fetchRequest()
+
         print(dataPath!)
 
         //        let item = Item()
@@ -37,7 +39,7 @@ class TodoListTC: UITableViewController {
 //            itemArr = items
 //        }
  
-//        loadItems()
+     loadItems(request: request)
     }
 
     // MARK: - Table view data source
@@ -129,5 +131,46 @@ class TodoListTC: UITableViewController {
 //            }
 //        }
     
+    func loadItems(request:NSFetchRequest<Item> = Item.fetchRequest()){
+        
+      
+        do{
+            itemArr =  try context.fetch(request)
+        }catch{
+            
+        }
+        tableView.reloadData()
+    }
+    
+
+
+    
+    
     }
 //}
+
+//MARK :- SearchBarMethods
+extension TodoListTC:UISearchBarDelegate{
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request :NSFetchRequest<Item> = Item.fetchRequest()
+        let predicate = NSPredicate(format: "title CONTAINS[cd] %@",searchBar.text!)
+        request.predicate = predicate
+        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
+        request.sortDescriptors = [sortDescriptor]
+        
+        loadItems(request: request)
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if (searchBar.text?.count == 0){
+            loadItems()
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+
+            }
+        }
+    }
+    
+   
+}
