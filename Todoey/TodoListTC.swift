@@ -13,6 +13,13 @@ class TodoListTC: UITableViewController {
 
 //    let defaults = UserDefaults.standard
     var itemArr = [Item]()
+    
+    var selectedCategory:Category? {
+        didSet{
+            loadItems()
+        }
+    }
+    
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
 
     
@@ -21,12 +28,9 @@ class TodoListTC: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-
-        let request:NSFetchRequest<Item> = Item.fetchRequest()
-
         print(dataPath!)
 
-        //        let item = Item()
+//        let item = Item()
 //        item.title = "bro"
 //        itemArr.append(item)
 //
@@ -39,7 +43,6 @@ class TodoListTC: UITableViewController {
 //            itemArr = items
 //        }
  
-     loadItems(request: request)
     }
 
     // MARK: - Table view data source
@@ -55,15 +58,13 @@ class TodoListTC: UITableViewController {
         cell.textLabel?.text = itemArr[indexPath.row].title
     
         cell.accessoryType = itemArr[indexPath.row].done ?.checkmark:.none
-     
         
         return cell
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        
-        itemArr[indexPath.row].done = !itemArr[indexPath.row].done
+       itemArr[indexPath.row].done = !itemArr[indexPath.row].done
         
        saveItems()
         
@@ -78,14 +79,12 @@ class TodoListTC: UITableViewController {
         alert.addAction(UIAlertAction.init(title: "ADD ITEM", style: .default, handler: { (action) in
            
             
-            
             let newItem = Item(context: self.context)
             newItem.title = textField.text!
             newItem.done = false
-          
+            newItem.parentCategory = self.selectedCategory
     
 //            self.defaults.set(self.itemArr, forKey:"ToDoListArray")
-            
             
             if  textField.text == "" {
                 let abc = UIAlertController.init(title: "", message: "Empty string", preferredStyle: UIAlertController.Style.alert)
@@ -99,13 +98,10 @@ class TodoListTC: UITableViewController {
             self.saveItems()
          
             }))
-        
-        
             alert.addTextField(configurationHandler: { (alertTextField) in
                 alertTextField.placeholder = "Create New Item"
               textField = alertTextField
-             
-        })
+            })
         present(alert, animated: true, completion: nil)
     }
     func saveItems(){
@@ -116,7 +112,6 @@ class TodoListTC: UITableViewController {
         }catch{
             
         }
-        
         self.tableView.reloadData()
         
     }
@@ -131,8 +126,17 @@ class TodoListTC: UITableViewController {
 //            }
 //        }
     
-    func loadItems(request:NSFetchRequest<Item> = Item.fetchRequest()){
+    func loadItems(request:NSFetchRequest<Item> = Item.fetchRequest(),predicate:NSPredicate? = nil){
         
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", (selectedCategory?.name)!)
+        if let additionalPredicate = predicate{
+            let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [additionalPredicate,predicate!])
+            request.predicate = compoundPredicate
+            
+        }else{
+            request.predicate = categoryPredicate
+
+        }
       
         do{
             itemArr =  try context.fetch(request)
@@ -142,14 +146,10 @@ class TodoListTC: UITableViewController {
         tableView.reloadData()
     }
     
-
-
-    
-    
     }
 //}
 
-//MARK :- SearchBarMethods
+//MARK:- SearchBarMethods
 extension TodoListTC:UISearchBarDelegate{
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
